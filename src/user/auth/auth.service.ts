@@ -1,14 +1,25 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../common/entities/user.entity';
 import { Repository } from 'typeorm';
 import { RegisterDto } from '../common/dto/register.dto';
+import { LoginDto } from '../common/dto/login.dto';
 import * as argon2 from 'argon2';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { v4 } from 'uuid';
+import { add } from 'date-fns';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -23,7 +34,9 @@ export class AuthService {
       throw new ConflictException('Пользователь с данным email уже существует');
 
     if (userByName)
-      throw new ConflictException('Пользователь с данным именем уже существет');
+      throw new ConflictException(
+        'Пользователь с данным именем уже существует',
+      );
 
     const userData = this.userRepository.create({
       ...dto,
@@ -31,5 +44,22 @@ export class AuthService {
     });
 
     return await this.userRepository.save(userData);
+  }
+
+  async login(dto: LoginDto) {
+    const user = await this.userRepository.findOne({
+      where: { email: dto.email },
+    });
+
+    if (!user) throw new UnauthorizedException('Неверный логин или пароль');
+
+    const password = await argon2.verify(user.password, dto.password);
+
+    if (!password) throw new UnauthorizedException('Неверный логин или пароль');
+
+    const payload = { id: user.id, email: user.email };
+    const token = this.jwtService.sign(payload);
+
+    return { token };
   }
 }
