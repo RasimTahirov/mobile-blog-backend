@@ -9,10 +9,7 @@ import { JwtStrategy } from '../common/strategy/jwt.strategy';
 import { jwtConfig } from '../common/config/jwt.config';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User]),
-    JwtModule.registerAsync(jwtConfig),
-  ],
+  imports: [TypeOrmModule.forFeature([User]), JwtModule.registerAsync(jwtConfig)],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
 })
