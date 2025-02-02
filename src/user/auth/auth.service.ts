@@ -1,12 +1,19 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../common/entities/user.entity';
 import { Repository } from 'typeorm';
 import { RegisterDto } from '../common/dto/register.dto';
 import { LoginDto } from '../common/dto/login.dto';
-import * as argon2 from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { S3Service } from 'src/s3/s3.service';
+import { generateUrl } from 'src/s3/common/utils/generateUrl';
+import * as argon2 from 'argon2';
 
 @Injectable()
 export class AuthService {
@@ -14,6 +21,7 @@ export class AuthService {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly s3: S3Service,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -64,5 +72,26 @@ export class AuthService {
     });
 
     return user;
+  }
+
+  async avatar(avatar: Express.Multer.File, id: number) {
+    const user = await this.userRepository.findOne({
+      where: { id },
+    });
+
+    if (!user) throw new BadRequestException('Пользователь не найден');
+
+    const { buffer, mimetype, originalname } = avatar;
+    const name = generateUrl(originalname);
+
+    const url = this.configService.getOrThrow<string>('S3_URL') + `${name}`;
+
+    await this.s3.uploadFile(buffer, name, mimetype);
+
+    user.avatar = url;
+
+    await this.userRepository.save(user);
+
+    return { user };
   }
 }
