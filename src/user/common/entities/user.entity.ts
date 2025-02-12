@@ -1,8 +1,11 @@
 import { MaxLength, MinLength } from 'class-validator';
+import { Like } from 'src/post/entities/like.entity';
+import { Post } from 'src/post/entities/post.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -34,6 +37,12 @@ export class User {
 
   @Column({ nullable: true })
   avatar: string;
+
+  @OneToMany(() => Post, (post) => post.user)
+  posts: Post;
+
+  @OneToMany(() => Like, (likes) => likes.user)
+  likes: Like[];
 
   @CreateDateColumn()
   createdAt: Date;

@@ -12,11 +12,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       ignoreExpiration: false,
       secretOrKey: configService.getOrThrow('JWT_SECRET'),
     });
-    console.log('JWT Strategy Initialized');
   }
 
   async validate(payload: IUser) {
-    console.log('payload', payload);
     return { id: payload.id, email: payload.email };
   }
 }
