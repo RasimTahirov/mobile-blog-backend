@@ -1,13 +1,21 @@
 import { IsString } from 'class-validator';
 import { User } from 'src/user/common/entities/user.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Like } from './like.entity';
 
 @Entity()
 export class Post {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 30 })
+  @Column({ type: 'varchar', length: 50 })
   @IsString()
   title: string;
 
@@ -20,4 +28,10 @@ export class Post {
 
   @ManyToOne(() => User, (user) => user.posts)
   user: User;
+
+  @OneToMany(() => Like, (likes) => likes.post)
+  likes: Like[];
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

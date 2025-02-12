@@ -1,4 +1,5 @@
 import { MaxLength, MinLength } from 'class-validator';
+import { Like } from 'src/post/entities/like.entity';
 import { Post } from 'src/post/entities/post.entity';
 import {
   Column,
@@ -39,6 +40,9 @@ export class User {
 
   @OneToMany(() => Post, (post) => post.user)
   posts: Post;
+
+  @OneToMany(() => Like, (likes) => likes.user)
+  likes: Like[];
 
   @CreateDateColumn()
   createdAt: Date;

@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  Param,
   Post,
   Req,
   UploadedFile,
@@ -27,5 +29,20 @@ export class PostController {
   @Get('all')
   async getAllPost() {
     return await this.postService.getAllPost();
+  }
+
+  @Post('like/:postId')
+  async addLike(@Param('postId') postId: number, @Req() req) {
+    return await this.postService.addLike(postId, +req.user.id);
+  }
+
+  @Get('like/:postId')
+  async isLike(@Param('postId') postId: number, @Req() req) {
+    return await this.postService.isLike(postId, +req.user.id);
+  }
+
+  @Delete('like/:postId')
+  async removeLike(@Param('postId') postId: number, @Req() req) {
+    return await this.postService.removeLike(postId, +req.user.id);
   }
 }
